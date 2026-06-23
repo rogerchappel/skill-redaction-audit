@@ -1,0 +1,42 @@
+# skill-redaction-audit
+
+`skill-redaction-audit` is a local-first CLI and reusable agent skill for checking public skill bundles before release. It looks for live-looking secrets, real-looking personal data, and side-effect language that needs an approval boundary.
+
+## Quickstart
+
+```bash
+npm install
+npm run build
+node dist/src/cli.js scan fixtures/leaky-skill --format markdown
+```
+
+## CLI
+
+```bash
+skill-redaction-audit scan ./skill-repo --format markdown
+skill-redaction-audit scan ./skill-repo --format json --fail-on warning
+skill-redaction-audit scan ./skill-repo --allowlist ./.redaction-allowlist.json
+```
+
+## Output
+
+Findings include file, line, column, severity, rule id, message, and a suggested replacement. Markdown output is suitable for PR bodies; JSON output is suitable for automation.
+
+## Allowlist
+
+Use an allowlist only for intentional fake examples.
+
+```json
+{
+  "patterns": ["example.com", "sk_test_"],
+  "files": ["fixtures/public-example.json"]
+}
+```
+
+## Limitations
+
+This tool is not an enterprise DLP system. It is a focused pre-publication gate for agent-skill repos. It reports possible issues and leaves final review to the agent operator.
+
+## Safety Notes
+
+The CLI is read-only and does not call external services. Do not use it as approval to publish sensitive artifacts without human review of warnings and errors.
