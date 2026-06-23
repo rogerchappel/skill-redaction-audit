@@ -1,0 +1,35 @@
+{
+  "name": "skill-redaction-audit",
+  "version": "0.1.0",
+  "description": "Local-first CLI and agent skill for auditing public skill bundles for redaction and side-effect risks.",
+  "type": "module",
+  "bin": {
+    "skill-redaction-audit": "./dist/src/cli.js"
+  },
+  "files": [
+    "dist",
+    "SKILL.md",
+    "README.md",
+    "docs",
+    "fixtures"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test dist/**/*.test.js",
+    "smoke": "npm run build && node dist/src/cli.js scan fixtures/leaky-skill --format markdown --fail-on error || test $? -eq 1",
+    "validate": "bash scripts/validate.sh"
+  },
+  "keywords": [
+    "agent-skills",
+    "redaction",
+    "audit",
+    "cli",
+    "security"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "typescript": "^5.5.3"
+  }
+}
