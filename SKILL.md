@@ -1,0 +1,27 @@
+# Skill Redaction Audit
+
+Use this skill before publishing or sharing an agent-skill bundle, generated skill fixture, release candidate, or public runbook.
+
+## Required Inputs
+
+- A local path to the skill repo or bundle.
+- Optional `.redaction-allowlist.json` for intentional fake examples.
+
+## Side-Effect Boundaries
+
+This skill is read-only. It scans local files and produces a report. It must not rewrite files, upload artifacts, call external accounts, or approve publication.
+
+## Approval Requirements
+
+Ask the user before ignoring an `error` finding. Ask for explicit approval before publishing a repo that still has `warning` findings involving real-looking people, customer names, or live-action language.
+
+## Examples
+
+```bash
+skill-redaction-audit scan ./my-skill --format markdown
+skill-redaction-audit scan ./my-skill --allowlist ./.redaction-allowlist.json --fail-on warning
+```
+
+## Validation
+
+Run `npm run validate`. Attach the audit summary to release-candidate PRs for public skill repos.
