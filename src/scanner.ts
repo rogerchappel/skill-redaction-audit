@@ -81,7 +81,7 @@ export async function scan(options: AuditOptions): Promise<AuditSummary> {
     });
   }
 
-  findings.push(...missingSafetySectionFindings(files, options.root));
+  findings.push(...(await missingSafetySectionFindings(files, options.root)));
 
   return {
     filesScanned: files.length,
@@ -153,13 +153,47 @@ function isSupported(name: string): boolean {
   return [...SUPPORTED_EXTENSIONS].some((extension) => name.endsWith(extension));
 }
 
-function missingSafetySectionFindings(files: string[], root: string): AuditFinding[] {
+async function missingSafetySectionFindings(files: string[], root: string): Promise<AuditFinding[]> {
   const skillFile = files.find((file) => relative(root, file).toLowerCase() === "skill.md");
   if (!skillFile) {
     return [];
   }
 
-  return [];
+  const text = await readFile(skillFile, "utf8");
+  const lower = text.toLowerCase();
+  const requiredSections = [
+    {
+      id: "skill.section.side-effects",
+      terms: ["side-effect", "side effect", "boundaries"],
+      message: "SKILL.md does not describe side-effect boundaries.",
+      suggestion: "Add a section that states which actions are read-only, draft-only, or require approval."
+    },
+    {
+      id: "skill.section.approvals",
+      terms: ["approval", "approve"],
+      message: "SKILL.md does not describe approval requirements.",
+      suggestion: "Add approval requirements before any external action or publication step."
+    },
+    {
+      id: "skill.section.validation",
+      terms: ["validation", "verification", "verify"],
+      message: "SKILL.md does not describe validation steps.",
+      suggestion: "Add commands or review steps that prove the skill output is ready to use."
+    }
+  ];
+
+  return requiredSections
+    .filter((section) => !section.terms.some((term) => lower.includes(term)))
+    .map((section) => ({
+      file: "SKILL.md",
+      line: 1,
+      column: 1,
+      severity: "warning" as const,
+      ruleId: section.id,
+      message: section.message,
+      suggestion: section.suggestion,
+      excerpt: ""
+    }));
 }
 
 function maxSeverity(findings: AuditFinding[]): Severity | "none" {
