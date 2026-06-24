@@ -50,6 +50,13 @@ const RULES: Rule[] = [
     suggestion: "Use +1-555-0100 or <PHONE_NUMBER>."
   },
   {
+    id: "private.workspace-path",
+    severity: "warning",
+    pattern: /(?:\/Users\/|\/home\/)[A-Za-z0-9._-]+(?:\/[^\s`'")]*)?/g,
+    message: "Local workspace path may reveal a private username or machine layout.",
+    suggestion: "Use <WORKSPACE>/path or a relative fixture path."
+  },
+  {
     id: "side-effect.live-action",
     severity: "warning",
     pattern: /\b(send|publish|delete|charge|transfer|invite|email|post to|write to)\b/gi,
@@ -115,13 +122,31 @@ function scanText(text: string, file: string, options: AuditOptions): AuditFindi
           ruleId: rule.id,
           message: rule.message,
           suggestion: rule.suggestion,
-          excerpt: line.trim()
+          excerpt: redactExcerpt(line.trim())
         });
       }
     }
   }
 
   return findings;
+}
+
+function redactExcerpt(line: string): string {
+  let redacted = line;
+  for (const sensitiveRule of RULES.filter((rule) => rule.id.startsWith("secret.") || rule.id.startsWith("pii.") || rule.id.startsWith("private."))) {
+    redacted = redacted.replace(new RegExp(sensitiveRule.pattern.source, sensitiveRule.pattern.flags), placeholderFor(sensitiveRule.id));
+  }
+  return redacted;
+}
+
+function placeholderFor(ruleId: string): string {
+  if (ruleId.startsWith("secret.")) {
+    return "<REDACTED_SECRET>";
+  }
+  if (ruleId.startsWith("private.")) {
+    return "<REDACTED_PATH>";
+  }
+  return "<REDACTED_PII>";
 }
 
 async function collectFiles(root: string): Promise<string[]> {
