@@ -22,6 +22,16 @@ skill-redaction-audit scan ./skill-repo --allowlist ./.redaction-allowlist.json
 
 Findings include file, line, column, severity, rule id, message, and a suggested replacement. Markdown output is suitable for PR bodies; JSON output is suitable for automation.
 
+## Skill Section Checks
+
+When the target contains `SKILL.md`, the scanner also checks that the skill documents:
+
+- side-effect boundaries
+- approval requirements
+- validation or verification steps
+
+Missing sections are warnings because the bundle may still be useful internally, but they should be fixed before public release.
+
 ## Allowlist
 
 Use an allowlist only for intentional fake examples.
