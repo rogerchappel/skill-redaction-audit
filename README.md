@@ -43,6 +43,17 @@ Use an allowlist only for intentional fake examples.
 }
 ```
 
+## Scoped Suppressions
+
+For rare fixture lines that intentionally need to look like a blocked pattern, place a scoped suppression comment on the line immediately before the example:
+
+```markdown
+<!-- redaction-audit-ignore-next-line secret.openai-key -- deterministic fake token used by this scanner fixture -->
+Use sk-1234567890abcdefghijklmnopqrstuvwxyz only as a scanner fixture.
+```
+
+Suppressions are counted in JSON and Markdown output as `suppressedFindings`. Keep the scope narrow, prefer a specific rule id over `*`, and do not use suppressions for unknown or live values.
+
 ## Limitations
 
 This tool is not an enterprise DLP system. It is a focused pre-publication gate for agent-skill repos. It reports possible issues and leaves final review to the agent operator.
