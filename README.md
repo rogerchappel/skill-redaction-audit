@@ -1,6 +1,6 @@
 # skill-redaction-audit
 
-`skill-redaction-audit` is a local-first CLI and reusable agent skill for checking public skill bundles before release. It looks for live-looking secrets, real-looking personal data, and side-effect language that needs an approval boundary.
+`skill-redaction-audit` is a local-first CLI and reusable agent skill for checking public skill bundles before release. It looks for live-looking secrets, real-looking personal data, private workspace paths, and side-effect language that needs an approval boundary.
 
 ## Quickstart
 
@@ -20,7 +20,7 @@ skill-redaction-audit scan ./skill-repo --allowlist ./.redaction-allowlist.json
 
 ## Output
 
-Findings include file, line, column, severity, rule id, message, and a suggested replacement. Markdown output is suitable for PR bodies; JSON output is suitable for automation.
+Findings include file, line, column, severity, rule id, message, and a suggested replacement. Markdown output is suitable for PR bodies; JSON output is suitable for automation. Excerpts redact matched secrets, personal data, and private paths so a report does not repeat the sensitive value it found.
 
 ## Skill Section Checks
 

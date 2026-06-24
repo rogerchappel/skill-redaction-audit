@@ -7,6 +7,8 @@ Ship.
 ## Evidence
 
 - Fixture-backed scanner covers secret, PII, side-effect, and clean examples.
+- Private workspace path detection catches local home-directory references before public release.
+- Finding excerpts redact matched secrets, personal data, and local paths before rendering.
 - SKILL.md section checks warn when side-effect boundaries, approvals, or validation guidance are missing.
 - CLI supports Markdown and JSON output.
 - Validation script runs check, test, smoke, and clean fixture scan.
