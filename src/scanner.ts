@@ -68,11 +68,14 @@ const RULES: Rule[] = [
 export async function scan(options: AuditOptions): Promise<AuditSummary> {
   const files = await collectFiles(options.root);
   const findings: AuditFinding[] = [];
+  let suppressedFindings = 0;
 
   for (const file of files) {
     const relativeFile = relative(options.root, file);
     const text = await readFile(file, "utf8");
-    findings.push(...scanText(text, relativeFile, options));
+    const result = scanText(text, relativeFile, options);
+    findings.push(...result.findings);
+    suppressedFindings += result.suppressedFindings;
   }
 
   if (!files.some((file) => relative(options.root, file).toLowerCase() === "skill.md")) {
@@ -93,14 +96,16 @@ export async function scan(options: AuditOptions): Promise<AuditSummary> {
   return {
     filesScanned: files.length,
     findings,
+    suppressedFindings,
     maxSeverity: maxSeverity(findings)
   };
 }
 
-function scanText(text: string, file: string, options: AuditOptions): AuditFinding[] {
+function scanText(text: string, file: string, options: AuditOptions): { findings: AuditFinding[]; suppressedFindings: number } {
   const findings: AuditFinding[] = [];
   const lines = text.split(/\r?\n/);
   const allowlist = options.allowlist ?? { patterns: [], files: [] };
+  let suppressedFindings = 0;
 
   for (const rule of RULES) {
     for (let index = 0; index < lines.length; index += 1) {
@@ -112,6 +117,10 @@ function scanText(text: string, file: string, options: AuditOptions): AuditFindi
       for (const match of matches) {
         const value = match[0];
         if (isAllowed(value, file, allowlist)) {
+          continue;
+        }
+        if (isSuppressed(rule.id, lines[index - 1])) {
+          suppressedFindings += 1;
           continue;
         }
         findings.push({
@@ -128,7 +137,21 @@ function scanText(text: string, file: string, options: AuditOptions): AuditFindi
     }
   }
 
-  return findings;
+  return { findings, suppressedFindings };
+}
+
+function isSuppressed(ruleId: string, previousLine: string | undefined): boolean {
+  if (!previousLine) {
+    return false;
+  }
+
+  const match = previousLine.match(/redaction-audit-ignore-next-line\s+([a-z0-9.*_-]+)/i);
+  if (!match) {
+    return false;
+  }
+
+  const scope = match[1].toLowerCase();
+  return scope === "*" || ruleId === scope || ruleId.startsWith(`${scope}.`);
 }
 
 function redactExcerpt(line: string): string {
