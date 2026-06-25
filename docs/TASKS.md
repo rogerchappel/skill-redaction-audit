@@ -5,6 +5,8 @@
 - [x] Add allowlist handling for fixture-safe examples.
 - [x] Add SKILL.md safety-section checks.
 - [x] Add private workspace path checks and redacted finding excerpts.
+- [x] Add caller-provided generated path exclusions.
+- [x] Add GitHub Actions release-candidate CI.
 - [x] Add clean and leaky fixtures.
 - [x] Add tests and smoke validation.
 - [x] Document agent skill usage and release candidate notes.

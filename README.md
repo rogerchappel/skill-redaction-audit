@@ -16,6 +16,7 @@ node dist/src/cli.js scan fixtures/leaky-skill --format markdown
 skill-redaction-audit scan ./skill-repo --format markdown
 skill-redaction-audit scan ./skill-repo --format json --fail-on warning
 skill-redaction-audit scan ./skill-repo --allowlist ./.redaction-allowlist.json
+skill-redaction-audit scan ./skill-repo --exclude generated --exclude coverage
 ```
 
 ## Output
@@ -42,6 +43,10 @@ Use an allowlist only for intentional fake examples.
   "files": ["fixtures/public-example.json"]
 }
 ```
+
+## Path Exclusions
+
+Use `--exclude <path-prefix>` for generated artifacts that should not affect a public-release audit, such as local build output, coverage folders, or copied fixture snapshots. Exclusions are path-prefix matches relative to the scan root, and they do not suppress findings in source skill files.
 
 ## Scoped Suppressions
 
