@@ -1,6 +1,6 @@
 # skill-redaction-audit
 
-`skill-redaction-audit` is a local-first CLI and reusable agent skill for checking public skill bundles before release. It looks for live-looking secrets, real-looking personal data, and side-effect language that needs an approval boundary.
+`skill-redaction-audit` is a local-first CLI and reusable agent skill for checking public skill bundles before release. It looks for live-looking secrets, real-looking personal data, private workspace paths, and side-effect language that needs an approval boundary.
 
 ## Quickstart
 
@@ -20,7 +20,7 @@ skill-redaction-audit scan ./skill-repo --allowlist ./.redaction-allowlist.json
 
 ## Output
 
-Findings include file, line, column, severity, rule id, message, and a suggested replacement. Markdown output is suitable for PR bodies; JSON output is suitable for automation.
+Findings include file, line, column, severity, rule id, message, and a suggested replacement. Markdown output is suitable for PR bodies; JSON output is suitable for automation. Excerpts redact matched secrets, personal data, and private paths so a report does not repeat the sensitive value it found.
 
 ## Skill Section Checks
 
@@ -42,6 +42,17 @@ Use an allowlist only for intentional fake examples.
   "files": ["fixtures/public-example.json"]
 }
 ```
+
+## Scoped Suppressions
+
+For rare fixture lines that intentionally need to look like a blocked pattern, place a scoped suppression comment on the line immediately before the example:
+
+```markdown
+<!-- redaction-audit-ignore-next-line secret.openai-key -- deterministic fake token used by this scanner fixture -->
+Use sk-1234567890abcdefghijklmnopqrstuvwxyz only as a scanner fixture.
+```
+
+Suppressions are counted in JSON and Markdown output as `suppressedFindings`. Keep the scope narrow, prefer a specific rule id over `*`, and do not use suppressions for unknown or live values.
 
 ## Limitations
 

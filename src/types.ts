@@ -24,5 +24,6 @@ export interface Allowlist {
 export interface AuditSummary {
   filesScanned: number;
   findings: AuditFinding[];
+  suppressedFindings: number;
   maxSeverity: Severity | "none";
 }

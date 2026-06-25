@@ -50,6 +50,13 @@ const RULES: Rule[] = [
     suggestion: "Use +1-555-0100 or <PHONE_NUMBER>."
   },
   {
+    id: "private.workspace-path",
+    severity: "warning",
+    pattern: /(?:\/Users\/|\/home\/)[A-Za-z0-9._-]+(?:\/[^\s`'")]*)?/g,
+    message: "Local workspace path may reveal a private username or machine layout.",
+    suggestion: "Use <WORKSPACE>/path or a relative fixture path."
+  },
+  {
     id: "side-effect.live-action",
     severity: "warning",
     pattern: /\b(send|publish|delete|charge|transfer|invite|email|post to|write to)\b/gi,
@@ -61,11 +68,14 @@ const RULES: Rule[] = [
 export async function scan(options: AuditOptions): Promise<AuditSummary> {
   const files = await collectFiles(options.root);
   const findings: AuditFinding[] = [];
+  let suppressedFindings = 0;
 
   for (const file of files) {
     const relativeFile = relative(options.root, file);
     const text = await readFile(file, "utf8");
-    findings.push(...scanText(text, relativeFile, options));
+    const result = scanText(text, relativeFile, options);
+    findings.push(...result.findings);
+    suppressedFindings += result.suppressedFindings;
   }
 
   if (!files.some((file) => relative(options.root, file).toLowerCase() === "skill.md")) {
@@ -86,14 +96,16 @@ export async function scan(options: AuditOptions): Promise<AuditSummary> {
   return {
     filesScanned: files.length,
     findings,
+    suppressedFindings,
     maxSeverity: maxSeverity(findings)
   };
 }
 
-function scanText(text: string, file: string, options: AuditOptions): AuditFinding[] {
+function scanText(text: string, file: string, options: AuditOptions): { findings: AuditFinding[]; suppressedFindings: number } {
   const findings: AuditFinding[] = [];
   const lines = text.split(/\r?\n/);
   const allowlist = options.allowlist ?? { patterns: [], files: [] };
+  let suppressedFindings = 0;
 
   for (const rule of RULES) {
     for (let index = 0; index < lines.length; index += 1) {
@@ -107,6 +119,10 @@ function scanText(text: string, file: string, options: AuditOptions): AuditFindi
         if (isAllowed(value, file, allowlist)) {
           continue;
         }
+        if (isSuppressed(rule.id, lines[index - 1])) {
+          suppressedFindings += 1;
+          continue;
+        }
         findings.push({
           file,
           line: index + 1,
@@ -115,13 +131,45 @@ function scanText(text: string, file: string, options: AuditOptions): AuditFindi
           ruleId: rule.id,
           message: rule.message,
           suggestion: rule.suggestion,
-          excerpt: line.trim()
+          excerpt: redactExcerpt(line.trim())
         });
       }
     }
   }
 
-  return findings;
+  return { findings, suppressedFindings };
+}
+
+function isSuppressed(ruleId: string, previousLine: string | undefined): boolean {
+  if (!previousLine) {
+    return false;
+  }
+
+  const match = previousLine.match(/redaction-audit-ignore-next-line\s+([a-z0-9.*_-]+)/i);
+  if (!match) {
+    return false;
+  }
+
+  const scope = match[1].toLowerCase();
+  return scope === "*" || ruleId === scope || ruleId.startsWith(`${scope}.`);
+}
+
+function redactExcerpt(line: string): string {
+  let redacted = line;
+  for (const sensitiveRule of RULES.filter((rule) => rule.id.startsWith("secret.") || rule.id.startsWith("pii.") || rule.id.startsWith("private."))) {
+    redacted = redacted.replace(new RegExp(sensitiveRule.pattern.source, sensitiveRule.pattern.flags), placeholderFor(sensitiveRule.id));
+  }
+  return redacted;
+}
+
+function placeholderFor(ruleId: string): string {
+  if (ruleId.startsWith("secret.")) {
+    return "<REDACTED_SECRET>";
+  }
+  if (ruleId.startsWith("private.")) {
+    return "<REDACTED_PATH>";
+  }
+  return "<REDACTED_PII>";
 }
 
 async function collectFiles(root: string): Promise<string[]> {

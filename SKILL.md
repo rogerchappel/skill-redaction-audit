@@ -15,6 +15,8 @@ This skill is read-only. It scans local files and produces a report. It must not
 
 Ask the user before ignoring an `error` finding. Ask for explicit approval before publishing a repo that still has `warning` findings involving real-looking people, customer names, or live-action language.
 
+Inline `redaction-audit-ignore-next-line` comments are allowed only for deterministic fake fixtures. Treat any suppressed finding count as a review item, and do not use suppressions for values copied from private workspaces or live accounts.
+
 ## Examples
 
 ```bash

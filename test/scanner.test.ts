@@ -9,12 +9,20 @@ test("flags live-looking secrets and external action language", async () => {
   assert.equal(summary.maxSeverity, "error");
   assert.ok(summary.findings.some((finding) => finding.ruleId === "secret.openai-key"));
   assert.ok(summary.findings.some((finding) => finding.ruleId === "side-effect.live-action"));
+  assert.ok(summary.findings.some((finding) => finding.ruleId === "private.workspace-path"));
+  assert.ok(summary.findings.some((finding) => finding.excerpt.includes("<REDACTED_SECRET>")));
+  assert.ok(summary.findings.some((finding) => finding.excerpt.includes("<REDACTED_PII>")));
+  assert.ok(summary.findings.some((finding) => finding.excerpt.includes("<REDACTED_PATH>")));
+  assert.ok(!summary.findings.some((finding) => finding.excerpt.includes("sk-1234567890")));
+  assert.ok(!summary.findings.some((finding) => finding.excerpt.includes("/Users/roger")));
+  assert.equal(summary.suppressedFindings, 0);
 });
 
 test("allows documented fake examples", async () => {
   const summary = await scan({ root: resolve("fixtures/clean-skill"), allowlist: defaultAllowlist() });
   assert.equal(summary.maxSeverity, "none");
   assert.equal(summary.findings.length, 0);
+  assert.equal(summary.suppressedFindings, 0);
 });
 
 test("warns when skill safety sections are missing", async () => {
@@ -23,4 +31,11 @@ test("warns when skill safety sections are missing", async () => {
   assert.ok(summary.findings.some((finding) => finding.ruleId === "skill.section.side-effects"));
   assert.ok(summary.findings.some((finding) => finding.ruleId === "skill.section.approvals"));
   assert.ok(summary.findings.some((finding) => finding.ruleId === "skill.section.validation"));
+});
+
+test("honors scoped ignore-next-line comments for intentional examples", async () => {
+  const summary = await scan({ root: resolve("fixtures/suppressed-skill"), allowlist: defaultAllowlist() });
+  assert.equal(summary.maxSeverity, "none");
+  assert.equal(summary.findings.length, 0);
+  assert.equal(summary.suppressedFindings, 1);
 });
