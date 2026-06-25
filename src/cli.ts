@@ -10,6 +10,7 @@ interface CliOptions {
   path?: string;
   format: "json" | "markdown";
   allowlist?: string;
+  exclude: string[];
   failOn: Severity;
 }
 
@@ -21,13 +22,13 @@ async function main(argv: string[]): Promise<number> {
   }
 
   const allowlist = await loadAllowlist(options.allowlist ? resolve(options.allowlist) : undefined);
-  const summary = await scan({ root: resolve(options.path), allowlist });
+  const summary = await scan({ root: resolve(options.path), allowlist, exclude: options.exclude });
   process.stdout.write(options.format === "json" ? formatJson(summary) : formatMarkdown(summary));
   return shouldFail(summary.maxSeverity, options.failOn) ? 1 : 0;
 }
 
 function parseArgs(argv: string[]): CliOptions {
-  const options: CliOptions = { command: argv[0], path: argv[1], format: "markdown", failOn: "error" };
+  const options: CliOptions = { command: argv[0], path: argv[1], format: "markdown", exclude: [], failOn: "error" };
   for (let index = 2; index < argv.length; index += 1) {
     const arg = argv[index];
     const next = argv[index + 1];
@@ -36,6 +37,9 @@ function parseArgs(argv: string[]): CliOptions {
       index += 1;
     } else if (arg === "--allowlist" && next) {
       options.allowlist = next;
+      index += 1;
+    } else if (arg === "--exclude" && next) {
+      options.exclude.push(next);
       index += 1;
     } else if (arg === "--fail-on" && isSeverity(next)) {
       options.failOn = next;
@@ -55,7 +59,7 @@ function shouldFail(maxSeverity: Severity | "none", failOn: Severity): boolean {
 }
 
 function printHelp(): void {
-  process.stderr.write(`Usage: skill-redaction-audit scan <path> [--format json|markdown] [--allowlist file] [--fail-on info|warning|error]\n`);
+  process.stderr.write(`Usage: skill-redaction-audit scan <path> [--format json|markdown] [--allowlist file] [--exclude path-prefix] [--fail-on info|warning|error]\n`);
 }
 
 main(process.argv.slice(2))

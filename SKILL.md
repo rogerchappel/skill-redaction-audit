@@ -6,6 +6,7 @@ Use this skill before publishing or sharing an agent-skill bundle, generated ski
 
 - A local path to the skill repo or bundle.
 - Optional `.redaction-allowlist.json` for intentional fake examples.
+- Optional generated path prefixes to exclude from the source-bundle audit.
 
 ## Side-Effect Boundaries
 
@@ -22,6 +23,7 @@ Inline `redaction-audit-ignore-next-line` comments are allowed only for determin
 ```bash
 skill-redaction-audit scan ./my-skill --format markdown
 skill-redaction-audit scan ./my-skill --allowlist ./.redaction-allowlist.json --fail-on warning
+skill-redaction-audit scan ./my-skill --exclude generated --exclude coverage
 ```
 
 ## Validation

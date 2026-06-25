@@ -66,7 +66,7 @@ const RULES: Rule[] = [
 ];
 
 export async function scan(options: AuditOptions): Promise<AuditSummary> {
-  const files = await collectFiles(options.root);
+  const files = await collectFiles(options.root, options.exclude ?? []);
   const findings: AuditFinding[] = [];
   let suppressedFindings = 0;
 
@@ -172,7 +172,7 @@ function placeholderFor(ruleId: string): string {
   return "<REDACTED_PII>";
 }
 
-async function collectFiles(root: string): Promise<string[]> {
+async function collectFiles(root: string, exclude: string[]): Promise<string[]> {
   const entry = await stat(root);
   if (entry.isFile()) {
     return [root];
@@ -185,6 +185,10 @@ async function collectFiles(root: string): Promise<string[]> {
         continue;
       }
       const fullPath = join(directory, item.name);
+      const relativePath = relative(root, fullPath);
+      if (isExcluded(relativePath, exclude)) {
+        continue;
+      }
       if (item.isDirectory()) {
         await walk(fullPath);
       } else if (isSupported(item.name)) {
@@ -195,6 +199,14 @@ async function collectFiles(root: string): Promise<string[]> {
 
   await walk(root);
   return found.sort();
+}
+
+function isExcluded(relativePath: string, exclude: string[]): boolean {
+  const normalized = relativePath.replaceAll("\\", "/");
+  return exclude.some((entry) => {
+    const pattern = entry.replaceAll("\\", "/").replace(/^\.?\//, "").replace(/\/$/, "");
+    return normalized === pattern || normalized.startsWith(`${pattern}/`);
+  });
 }
 
 function isSupported(name: string): boolean {

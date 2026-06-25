@@ -39,3 +39,13 @@ test("honors scoped ignore-next-line comments for intentional examples", async (
   assert.equal(summary.findings.length, 0);
   assert.equal(summary.suppressedFindings, 1);
 });
+
+test("skips caller-provided generated paths", async () => {
+  const withoutExclude = await scan({ root: resolve("fixtures/excluded-skill"), allowlist: defaultAllowlist() });
+  assert.equal(withoutExclude.maxSeverity, "error");
+  assert.ok(withoutExclude.findings.some((finding) => finding.file === "generated/leaky.md"));
+
+  const withExclude = await scan({ root: resolve("fixtures/excluded-skill"), allowlist: defaultAllowlist(), exclude: ["generated"] });
+  assert.equal(withExclude.maxSeverity, "none");
+  assert.equal(withExclude.findings.length, 0);
+});

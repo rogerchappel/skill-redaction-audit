@@ -14,6 +14,7 @@ export interface AuditFinding {
 export interface AuditOptions {
   root: string;
   allowlist?: Allowlist;
+  exclude?: string[];
 }
 
 export interface Allowlist {
