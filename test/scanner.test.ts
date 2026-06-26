@@ -15,6 +15,10 @@ test("flags live-looking secrets and external action language", async () => {
   assert.ok(summary.findings.some((finding) => finding.excerpt.includes("<REDACTED_PATH>")));
   assert.ok(!summary.findings.some((finding) => finding.excerpt.includes("sk-1234567890")));
   assert.ok(!summary.findings.some((finding) => finding.excerpt.includes("/Users/roger")));
+  assert.equal(summary.severityCounts.error, 1);
+  assert.equal(summary.severityCounts.warning, 6);
+  assert.equal(summary.ruleCounts["secret.openai-key"], 1);
+  assert.equal(summary.ruleCounts["side-effect.live-action"], 1);
   assert.equal(summary.suppressedFindings, 0);
 });
 
@@ -22,6 +26,8 @@ test("allows documented fake examples", async () => {
   const summary = await scan({ root: resolve("fixtures/clean-skill"), allowlist: defaultAllowlist() });
   assert.equal(summary.maxSeverity, "none");
   assert.equal(summary.findings.length, 0);
+  assert.deepEqual(summary.severityCounts, { info: 0, warning: 0, error: 0 });
+  assert.deepEqual(summary.ruleCounts, {});
   assert.equal(summary.suppressedFindings, 0);
 });
 

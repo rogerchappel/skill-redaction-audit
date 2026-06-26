@@ -97,7 +97,9 @@ export async function scan(options: AuditOptions): Promise<AuditSummary> {
     filesScanned: files.length,
     findings,
     suppressedFindings,
-    maxSeverity: maxSeverity(findings)
+    maxSeverity: maxSeverity(findings),
+    severityCounts: countBySeverity(findings),
+    ruleCounts: countByRule(findings)
   };
 }
 
@@ -267,4 +269,20 @@ function maxSeverity(findings: AuditFinding[]): Severity | "none" {
     return "info";
   }
   return "none";
+}
+
+function countBySeverity(findings: AuditFinding[]): Record<Severity, number> {
+  const counts: Record<Severity, number> = { info: 0, warning: 0, error: 0 };
+  for (const finding of findings) {
+    counts[finding.severity] += 1;
+  }
+  return counts;
+}
+
+function countByRule(findings: AuditFinding[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const finding of findings) {
+    counts[finding.ruleId] = (counts[finding.ruleId] ?? 0) + 1;
+  }
+  return Object.fromEntries(Object.entries(counts).sort(([left], [right]) => left.localeCompare(right)));
 }

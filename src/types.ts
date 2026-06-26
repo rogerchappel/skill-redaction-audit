@@ -27,4 +27,6 @@ export interface AuditSummary {
   findings: AuditFinding[];
   suppressedFindings: number;
   maxSeverity: Severity | "none";
+  severityCounts: Record<Severity, number>;
+  ruleCounts: Record<string, number>;
 }
