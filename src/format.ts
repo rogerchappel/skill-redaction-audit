@@ -11,6 +11,7 @@ export function formatMarkdown(summary: AuditSummary): string {
     `Files scanned: ${summary.filesScanned}`,
     `Max severity: ${summary.maxSeverity}`,
     `Findings: ${summary.findings.length}`,
+    `Severity counts: ${summary.severityCounts.error} error, ${summary.severityCounts.warning} warning, ${summary.severityCounts.info} info`,
     `Suppressed findings: ${summary.suppressedFindings}`,
     ""
   ];
