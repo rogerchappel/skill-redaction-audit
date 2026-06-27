@@ -66,3 +66,11 @@ This tool is not an enterprise DLP system. It is a focused pre-publication gate 
 ## Safety Notes
 
 The CLI is read-only and does not call external services. Do not use it as approval to publish sensitive artifacts without human review of warnings and errors.
+
+## Release Check
+
+Run `npm run release:check` before publishing or opening release PRs. It runs type checks, tests, smoke validation, fixture validation, and `npm pack --dry-run`.
+
+## Support
+
+Report public release-readiness issues at https://github.com/rogerchappel/skill-redaction-audit/issues.
