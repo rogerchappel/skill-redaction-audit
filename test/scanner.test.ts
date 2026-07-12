@@ -8,6 +8,7 @@ test("flags live-looking secrets and external action language", async () => {
   const summary = await scan({ root: resolve("fixtures/leaky-skill"), allowlist: defaultAllowlist() });
   assert.equal(summary.maxSeverity, "error");
   assert.ok(summary.findings.some((finding) => finding.ruleId === "secret.openai-key"));
+  assert.ok(summary.findings.some((finding) => finding.ruleId === "secret.bearer-token"));
   assert.ok(summary.findings.some((finding) => finding.ruleId === "side-effect.live-action"));
   assert.ok(summary.findings.some((finding) => finding.ruleId === "private.workspace-path"));
   assert.ok(summary.findings.some((finding) => finding.excerpt.includes("<REDACTED_SECRET>")));
@@ -15,9 +16,10 @@ test("flags live-looking secrets and external action language", async () => {
   assert.ok(summary.findings.some((finding) => finding.excerpt.includes("<REDACTED_PATH>")));
   assert.ok(!summary.findings.some((finding) => finding.excerpt.includes("sk-1234567890")));
   assert.ok(!summary.findings.some((finding) => finding.excerpt.includes("/Users/roger")));
-  assert.equal(summary.severityCounts.error, 1);
+  assert.equal(summary.severityCounts.error, 2);
   assert.equal(summary.severityCounts.warning, 6);
   assert.equal(summary.ruleCounts["secret.openai-key"], 1);
+  assert.equal(summary.ruleCounts["secret.bearer-token"], 1);
   assert.equal(summary.ruleCounts["side-effect.live-action"], 1);
   assert.equal(summary.suppressedFindings, 0);
 });
