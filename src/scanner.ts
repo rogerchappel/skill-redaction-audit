@@ -29,6 +29,13 @@ const RULES: Rule[] = [
     suggestion: "Replace with xoxb-example-token or <SLACK_TOKEN>."
   },
   {
+    id: "secret.bearer-token",
+    severity: "error",
+    pattern: /\bBearer\s+[A-Za-z0-9._~+/=-]{24,}\b/g,
+    message: "Possible live bearer token.",
+    suggestion: "Replace with Bearer <ACCESS_TOKEN> or a clearly fake fixture value."
+  },
+  {
     id: "secret.private-key",
     severity: "error",
     pattern: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/g,
