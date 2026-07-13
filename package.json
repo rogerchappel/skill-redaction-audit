@@ -34,10 +34,6 @@
     "security"
   ],
   "license": "MIT",
-  "devDependencies": {
-    "@types/node": "^20.14.10",
-    "typescript": "^5.5.3"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rogerchappel/skill-redaction-audit.git"
@@ -45,5 +41,9 @@
   "bugs": {
     "url": "https://github.com/rogerchappel/skill-redaction-audit/issues"
   },
-  "homepage": "https://github.com/rogerchappel/skill-redaction-audit#readme"
+  "homepage": "https://github.com/rogerchappel/skill-redaction-audit#readme",
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "typescript": "^5.5.3"
+  }
 }
