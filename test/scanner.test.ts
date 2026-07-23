@@ -33,12 +33,30 @@ test("allows documented fake examples", async () => {
   assert.equal(summary.suppressedFindings, 0);
 });
 
+test("recognizes a clean SKILL.md passed as the scan root", async () => {
+  const summary = await scan({ root: resolve("fixtures/clean-skill/SKILL.md"), allowlist: defaultAllowlist() });
+  assert.equal(summary.filesScanned, 1);
+  assert.equal(summary.maxSeverity, "none");
+  assert.equal(summary.findings.length, 0);
+});
+
 test("warns when skill safety sections are missing", async () => {
   const summary = await scan({ root: resolve("fixtures/incomplete-skill"), allowlist: defaultAllowlist() });
   assert.equal(summary.maxSeverity, "warning");
   assert.ok(summary.findings.some((finding) => finding.ruleId === "skill.section.side-effects"));
   assert.ok(summary.findings.some((finding) => finding.ruleId === "skill.section.approvals"));
   assert.ok(summary.findings.some((finding) => finding.ruleId === "skill.section.validation"));
+});
+
+test("runs section checks against an incomplete SKILL.md passed as the scan root", async () => {
+  const summary = await scan({ root: resolve("fixtures/incomplete-skill/SKILL.md"), allowlist: defaultAllowlist() });
+  assert.equal(summary.filesScanned, 1);
+  assert.equal(summary.maxSeverity, "warning");
+  assert.ok(!summary.findings.some((finding) => finding.ruleId === "skill.missing"));
+  assert.deepEqual(
+    summary.findings.map((finding) => finding.ruleId).sort(),
+    ["skill.section.approvals", "skill.section.side-effects", "skill.section.validation"]
+  );
 });
 
 test("honors scoped ignore-next-line comments for intentional examples", async () => {

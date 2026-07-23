@@ -14,10 +14,13 @@ node dist/src/cli.js scan fixtures/leaky-skill --format markdown
 
 ```bash
 skill-redaction-audit scan ./skill-repo --format markdown
+skill-redaction-audit scan ./skill-repo/SKILL.md --format json
 skill-redaction-audit scan ./skill-repo --format json --fail-on warning
 skill-redaction-audit scan ./skill-repo --allowlist ./.redaction-allowlist.json
 skill-redaction-audit scan ./skill-repo --exclude generated --exclude coverage
 ```
+
+The scan target can be either a skill directory or one supported file. A `SKILL.md` file target is treated as the bundle's skill definition, so the same safety-section checks and exit thresholds apply as when scanning its containing directory. For other single files, content rules run and the report also notes that the target is not a complete skill bundle.
 
 ## Output
 

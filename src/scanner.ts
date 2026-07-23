@@ -1,5 +1,5 @@
 import { readdir, readFile, stat } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { basename, join, relative } from "node:path";
 import type { AuditFinding, AuditOptions, AuditSummary, Severity } from "./types.js";
 import { isAllowed } from "./allowlist.js";
 
@@ -78,14 +78,14 @@ export async function scan(options: AuditOptions): Promise<AuditSummary> {
   let suppressedFindings = 0;
 
   for (const file of files) {
-    const relativeFile = relative(options.root, file);
+    const relativeFile = logicalFileName(options.root, file);
     const text = await readFile(file, "utf8");
     const result = scanText(text, relativeFile, options);
     findings.push(...result.findings);
     suppressedFindings += result.suppressedFindings;
   }
 
-  if (!files.some((file) => relative(options.root, file).toLowerCase() === "skill.md")) {
+  if (!files.some((file) => logicalFileName(options.root, file).toLowerCase() === "skill.md")) {
     findings.push({
       file: "SKILL.md",
       line: 1,
@@ -222,8 +222,12 @@ function isSupported(name: string): boolean {
   return [...SUPPORTED_EXTENSIONS].some((extension) => name.endsWith(extension));
 }
 
+function logicalFileName(root: string, file: string): string {
+  return relative(root, file) || basename(file);
+}
+
 async function missingSafetySectionFindings(files: string[], root: string): Promise<AuditFinding[]> {
-  const skillFile = files.find((file) => relative(root, file).toLowerCase() === "skill.md");
+  const skillFile = files.find((file) => logicalFileName(root, file).toLowerCase() === "skill.md");
   if (!skillFile) {
     return [];
   }
