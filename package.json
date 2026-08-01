@@ -7,7 +7,7 @@
     "skill-redaction-audit": "./dist/src/cli.js"
   },
   "files": [
-    "dist",
+    "dist/src",
     "SKILL.md",
     "README.md",
     "docs",
@@ -18,11 +18,12 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepack": "npm run build",
     "check": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build && node --test dist/**/*.test.js",
     "smoke": "npm run build && node dist/src/cli.js scan fixtures/leaky-skill --format markdown --fail-on error || test $? -eq 1",
     "validate": "bash scripts/validate.sh",
-    "package:smoke": "npm run build && npm pack --dry-run",
+    "package:smoke": "node scripts/package-smoke.mjs",
     "release:check": "npm run check && npm test && npm run smoke && npm run validate && npm run package:smoke",
     "lint": "npm run check"
   },
