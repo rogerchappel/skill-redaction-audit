@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Build the CLI during npm packaging and verify the installed tarball's help and
+  scan threshold behavior from a clean source snapshot.
+- Exclude compiled test files from published tarballs.
+
 ## 0.1.0
 
 - Initial public CLI and skill package for local redaction audits of public
