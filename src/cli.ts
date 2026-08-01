@@ -15,9 +15,14 @@ interface CliOptions {
 }
 
 async function main(argv: string[]): Promise<number> {
+  if (argv.includes("--help") || argv.includes("-h")) {
+    printHelp(process.stdout);
+    return 0;
+  }
+
   const options = parseArgs(argv);
   if (options.command !== "scan" || !options.path) {
-    printHelp();
+    printHelp(process.stderr);
     return 2;
   }
 
@@ -58,8 +63,8 @@ function shouldFail(maxSeverity: Severity | "none", failOn: Severity): boolean {
   return rank[maxSeverity] >= rank[failOn];
 }
 
-function printHelp(): void {
-  process.stderr.write(`Usage: skill-redaction-audit scan <path> [--format json|markdown] [--allowlist file] [--exclude path-prefix] [--fail-on info|warning|error]\n`);
+function printHelp(output: NodeJS.WritableStream): void {
+  output.write(`Usage: skill-redaction-audit scan <path> [--format json|markdown] [--allowlist file] [--exclude path-prefix] [--fail-on info|warning|error]\n`);
 }
 
 main(process.argv.slice(2))

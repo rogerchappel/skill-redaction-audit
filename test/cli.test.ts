@@ -8,6 +8,13 @@ function scanSkill(path: string, ...args: string[]) {
   });
 }
 
+test("CLI prints help successfully when requested", () => {
+  const result = spawnSync(process.execPath, ["dist/src/cli.js", "--help"], { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /^Usage: skill-redaction-audit scan/);
+  assert.equal(result.stderr, "");
+});
+
 test("CLI accepts a clean SKILL.md file target and emits successful JSON", () => {
   const result = scanSkill("fixtures/clean-skill/SKILL.md");
   assert.equal(result.status, 0, result.stderr);
