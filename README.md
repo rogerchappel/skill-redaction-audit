@@ -22,6 +22,12 @@ skill-redaction-audit scan ./skill-repo --exclude generated --exclude coverage
 
 The scan target can be either a skill directory or one supported file. A `SKILL.md` file target is treated as the bundle's skill definition, so the same safety-section checks and exit thresholds apply as when scanning its containing directory. For other single files, content rules run and the report also notes that the target is not a complete skill bundle.
 
+The CLI exits with status `0` when the scan is below the selected threshold, `1`
+when findings meet `--fail-on`, and `2` for usage errors. Unsupported options,
+extra positional arguments, missing option values, and values outside the choices
+shown above are usage errors; the CLI writes an actionable error and the usage
+line to stderr without running a scan.
+
 ## Output
 
 Findings include file, line, column, severity, rule id, message, and a suggested replacement. Markdown output is suitable for PR bodies; JSON output is suitable for automation. Excerpts redact matched secrets, personal data, and private paths so a report does not repeat the sensitive value it found.
