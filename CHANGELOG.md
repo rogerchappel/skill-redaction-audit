@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reject invalid CLI options, values, and arguments with actionable usage errors
+  instead of silently scanning with defaults.
 - Build the CLI during npm packaging and verify the installed tarball's help and
   scan threshold behavior from a clean source snapshot.
 - Exclude compiled test files from published tarballs.
