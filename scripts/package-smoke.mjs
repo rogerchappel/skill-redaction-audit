@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -35,6 +35,13 @@ try {
   const scan = spawnSync(executable, ["scan", join(installedPackage, "fixtures", "incomplete-skill"), "--format", "json", "--fail-on", "warning"], { cwd: consumer, encoding: "utf8" });
   assert.equal(scan.status, 1, scan.stderr);
   assert.equal(JSON.parse(scan.stdout).maxSeverity, "warning");
+
+  const malformedAllowlist = join(consumer, "invalid-allowlist.json");
+  writeFileSync(malformedAllowlist, JSON.stringify({ patterns: "example.com", files: [] }));
+  const rejected = spawnSync(executable, ["scan", join(installedPackage, "fixtures", "leaky-skill"), "--format", "json", "--allowlist", malformedAllowlist], { cwd: consumer, encoding: "utf8" });
+  assert.equal(rejected.status, 1);
+  assert.equal(rejected.stdout, "");
+  assert.match(rejected.stderr, /^Invalid allowlist: 'patterns' must be an array of non-empty strings/);
   process.stdout.write(`Installed package smoke passed for ${packResult.filename}\n`);
 } finally {
   rmSync(temporaryRoot, { recursive: true, force: true });
