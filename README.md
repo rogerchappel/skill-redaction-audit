@@ -53,6 +53,8 @@ Use an allowlist only for intentional fake examples.
 }
 ```
 
+The top-level value must be a JSON object. When present, `patterns` and `files` must each be arrays of non-empty strings. The CLI exits nonzero before scanning if the file is malformed, so an invalid allowlist can never suppress findings.
+
 ## Path Exclusions
 
 Use `--exclude <path-prefix>` for generated artifacts that should not affect a public-release audit, such as local build output, coverage folders, or copied fixture snapshots. Exclusions are path-prefix matches relative to the scan root, and they do not suppress findings in source skill files.
