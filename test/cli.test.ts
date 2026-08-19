@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 
 function scanSkill(path: string, ...args: string[]) {
@@ -98,4 +101,29 @@ test("CLI preserves documented option forms and repeated exclusions", () => {
   );
   assert.equal(configured.status, 0, configured.stderr);
   assert.equal(JSON.parse(configured.stdout).filesScanned, 1);
+});
+
+test("CLI rejects malformed allowlists without scanning", () => {
+  const directory = mkdtempSync(join(tmpdir(), "redaction-allowlist-"));
+  try {
+    const invalidValues: Array<[string, unknown, string]> = [
+      ["top-level string", "example.com", "expected a JSON object"],
+      ["top-level null", null, "expected a JSON object"],
+      ["string patterns", { patterns: "example.com" }, "'patterns' must be an array"],
+      ["object files", { files: { name: "fixture.json" } }, "'files' must be an array"],
+      ["non-string element", { patterns: ["example.com", 7] }, "'patterns\\[1\\]' must be a non-empty string"],
+      ["blank element", { files: ["   "] }, "'files\\[0\\]' must be a non-empty string"]
+    ];
+
+    for (const [name, value, message] of invalidValues) {
+      const allowlist = join(directory, `${name.replaceAll(" ", "-")}.json`);
+      writeFileSync(allowlist, JSON.stringify(value));
+      const result = scanSkill("fixtures/leaky-skill", "--allowlist", allowlist);
+      assert.equal(result.status, 1, name);
+      assert.equal(result.stdout, "", name);
+      assert.match(result.stderr, new RegExp(`^Invalid allowlist: ${message}`), name);
+    }
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });

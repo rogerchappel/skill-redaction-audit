@@ -6,11 +6,30 @@ export async function loadAllowlist(path?: string): Promise<Allowlist> {
     return defaultAllowlist();
   }
 
-  const parsed = JSON.parse(await readFile(path, "utf8")) as Partial<Allowlist>;
+  const parsed: unknown = JSON.parse(await readFile(path, "utf8"));
+  assertAllowlist(parsed);
   return {
     patterns: [...defaultAllowlist().patterns, ...(parsed.patterns ?? [])],
     files: [...defaultAllowlist().files, ...(parsed.files ?? [])]
   };
+}
+
+function assertAllowlist(value: unknown): asserts value is Partial<Allowlist> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error("Invalid allowlist: expected a JSON object");
+  }
+
+  for (const field of ["patterns", "files"] as const) {
+    const entries = (value as Record<string, unknown>)[field];
+    if (entries === undefined) continue;
+    if (!Array.isArray(entries)) {
+      throw new Error(`Invalid allowlist: '${field}' must be an array of non-empty strings`);
+    }
+    const invalidIndex = entries.findIndex((entry) => typeof entry !== "string" || entry.trim().length === 0);
+    if (invalidIndex !== -1) {
+      throw new Error(`Invalid allowlist: '${field}[${invalidIndex}]' must be a non-empty string`);
+    }
+  }
 }
 
 export function defaultAllowlist(): Allowlist {
