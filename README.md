@@ -32,6 +32,8 @@ line to stderr without running a scan.
 
 Findings include file, line, column, severity, rule id, message, and a suggested replacement. Markdown output is suitable for PR bodies; JSON output is suitable for automation. Excerpts redact matched secrets, personal data, and private paths so a report does not repeat the sensitive value it found.
 
+Directory scans inspect Markdown, JSON, YAML, environment, example, and text files by extension. Extension matching is case-insensitive, so names such as `SKILL.MD`, `settings.JsOn`, and `policy.YAML` are included; unsupported file types remain skipped. A supported file can also be scanned directly.
+
 ## Skill Section Checks
 
 When the target contains `SKILL.md`, the scanner also checks that the skill documents:

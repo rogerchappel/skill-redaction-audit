@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { resolve } from "node:path";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { scan } from "../src/scanner.js";
 import { defaultAllowlist } from "../src/allowlist.js";
 
@@ -57,6 +59,25 @@ test("runs section checks against an incomplete SKILL.md passed as the scan root
     summary.findings.map((finding) => finding.ruleId).sort(),
     ["skill.section.approvals", "skill.section.side-effects", "skill.section.validation"]
   );
+});
+
+test("scans supported directory extensions without case sensitivity", async (context) => {
+  const root = await mkdtemp(join(tmpdir(), "redaction-extension-case-"));
+  context.after(() => rm(root, { recursive: true, force: true }));
+  await Promise.all([
+    writeFile(join(root, "SKILL.MD"), "# Demo\n\nSide-effect boundaries require approval and verification.\n"),
+    writeFile(join(root, "settings.JsOn"), '{"token":"sk-1234567890abcdefghijklmnopqrstuvwxyz"}\n'),
+    writeFile(join(root, "policy.YaML"), "authorization: Bearer abcdefghijklmnopqrstuvwxyz123456\n"),
+    writeFile(join(root, "ignored.js"), "const token = 'sk-1234567890abcdefghijklmnopqrstuvwxyz';\n")
+  ]);
+
+  const summary = await scan({ root, allowlist: defaultAllowlist() });
+
+  assert.equal(summary.filesScanned, 3);
+  assert.ok(summary.findings.some((finding) => finding.file === "settings.JsOn" && finding.ruleId === "secret.openai-key"));
+  assert.ok(summary.findings.some((finding) => finding.file === "policy.YaML" && finding.ruleId === "secret.bearer-token"));
+  assert.ok(!summary.findings.some((finding) => finding.file === "ignored.js"));
+  assert.ok(!summary.findings.some((finding) => finding.ruleId === "skill.missing"));
 });
 
 test("honors scoped ignore-next-line comments for intentional examples", async () => {
