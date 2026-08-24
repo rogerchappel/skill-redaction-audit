@@ -219,7 +219,8 @@ function isExcluded(relativePath: string, exclude: string[]): boolean {
 }
 
 function isSupported(name: string): boolean {
-  return [...SUPPORTED_EXTENSIONS].some((extension) => name.endsWith(extension));
+  const normalizedName = name.toLowerCase();
+  return [...SUPPORTED_EXTENSIONS].some((extension) => normalizedName.endsWith(extension));
 }
 
 function logicalFileName(root: string, file: string): string {
