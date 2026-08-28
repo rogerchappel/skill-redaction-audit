@@ -18,3 +18,11 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run release:check
+      - name: Verify release check from exported source
+        run: |
+          export_dir="$(mktemp -d)"
+          git archive HEAD | tar -x -C "$export_dir"
+          cd "$export_dir"
+          test ! -e .git
+          npm ci
+          npm run release:check
