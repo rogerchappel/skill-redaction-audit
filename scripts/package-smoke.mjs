@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const temporaryRoot = mkdtempSync(join(tmpdir(), "skill-redaction-audit-package-"));
@@ -12,10 +12,15 @@ const consumer = join(temporaryRoot, "consumer");
 try {
   mkdirSync(source);
   mkdirSync(consumer);
-  const archive = spawnSync("git", ["archive", "HEAD"], { cwd: root });
-  assert.equal(archive.status, 0, archive.stderr.toString());
-  const extract = spawnSync("tar", ["-x", "-C", source], { input: archive.stdout });
-  assert.equal(extract.status, 0, extract.stderr.toString());
+  const excluded = new Set([".git", "dist", "node_modules"]);
+  cpSync(root, source, {
+    recursive: true,
+    filter(path) {
+      const pathFromRoot = relative(root, path);
+      const [topLevel] = pathFromRoot.split(sep);
+      return pathFromRoot === "" || (!excluded.has(topLevel) && !pathFromRoot.endsWith(".tgz"));
+    },
+  });
 
   execFileSync("npm", ["ci"], { cwd: source, stdio: "inherit" });
   const packOutput = execFileSync("npm", ["pack", "--json"], { cwd: source, encoding: "utf8" });
