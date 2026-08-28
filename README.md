@@ -82,7 +82,7 @@ The CLI is read-only and does not call external services. Do not use it as appro
 
 ## Release Check
 
-Run `npm run release:check` before publishing or opening release PRs. It runs type checks, tests, smoke validation, fixture validation, then packs a clean source snapshot and installs the tarball into an empty consumer project. The installed-package probe verifies the public CLI help and a representative failure threshold. The `prepack` lifecycle builds executable files for direct `npm pack` and publish flows.
+Run `npm run release:check` before publishing or opening release PRs. It runs type checks, tests, smoke validation, fixture validation, then copies the current source (excluding `.git`, dependencies, build output, and existing tarballs), packs that snapshot, and installs the tarball into an empty consumer project. This checks the source on disk rather than substituting committed `HEAD` content, and it also works from exported source without Git metadata. The installed-package probe verifies the public CLI help and a representative failure threshold. The `prepack` lifecycle builds executable files for direct `npm pack` and publish flows.
 
 ## Support
 
