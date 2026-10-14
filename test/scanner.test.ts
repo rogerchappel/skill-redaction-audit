@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { scan } from "../src/scanner.js";
@@ -95,4 +95,20 @@ test("skips caller-provided generated paths", async () => {
   const withExclude = await scan({ root: resolve("fixtures/excluded-skill"), allowlist: defaultAllowlist(), exclude: ["generated"] });
   assert.equal(withExclude.maxSeverity, "none");
   assert.equal(withExclude.findings.length, 0);
+});
+
+test("does not follow supported-file symlinks outside the scan root", async (context) => {
+  const root = await mkdtemp(join(tmpdir(), "redaction-symlink-root-"));
+  const outside = await mkdtemp(join(tmpdir(), "redaction-symlink-outside-"));
+  context.after(async () => {
+    await Promise.all([rm(root, { recursive: true, force: true }), rm(outside, { recursive: true, force: true })]);
+  });
+  await writeFile(join(root, "SKILL.md"), "# Demo\n\nSide-effect boundaries require approval and verification.\n");
+  await writeFile(join(outside, "secret.md"), "Bearer abcdefghijklmnopqrstuvwxyz123456\n");
+  await symlink(join(outside, "secret.md"), join(root, "linked.md"));
+
+  const summary = await scan({ root, allowlist: defaultAllowlist() });
+
+  assert.equal(summary.filesScanned, 1);
+  assert.equal(summary.findings.length, 0);
 });

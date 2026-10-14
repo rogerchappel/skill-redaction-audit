@@ -200,7 +200,7 @@ async function collectFiles(root: string, exclude: string[]): Promise<string[]> 
       }
       if (item.isDirectory()) {
         await walk(fullPath);
-      } else if (isSupported(item.name)) {
+      } else if (item.isFile() && isSupported(item.name)) {
         found.push(fullPath);
       }
     }
